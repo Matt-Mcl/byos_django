@@ -78,6 +78,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("html", models.TextField()),
+                ("url", models.TextField()),
                 ("screen", models.BinaryField()),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("generated", models.BooleanField(default=False)),

@@ -53,7 +53,7 @@ class ScreenAdmin(admin.ModelAdmin):
     list_filter = ("device", "created_at", "generated")
     search_fields = ("device", "html")
     readonly_fields = ("created_at", "generated", "embed_image")
-    fields = ("device", "created_at", "generated", "html", "embed_image")
+    fields = ("device", "created_at", "generated", "html", "url", "embed_image")
     actions = ["generate"]
 
     def embed_image(self, obj=None):
@@ -66,7 +66,7 @@ class ScreenAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=...):
         if obj and obj.generated:
-            return ["created_at", "generated", "html", "embed_image"]
+            return ["created_at", "generated", "html", "url", "embed_image"]
         return ["created_at", "generated", "embed_image"]
 
     def generate(self, request, queryset):

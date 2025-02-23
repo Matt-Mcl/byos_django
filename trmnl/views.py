@@ -114,13 +114,13 @@ def display(request):
     # get latest screen, or rover if no screen
     screen = device.get_screen(update_last_seen=True)
     if not screen:
-        image_url = request.build_absolute_uri("/static/images/rover.bmp")
+        image_url = "http://192.168.0.63:8000/static/images/rover.bmp"
         filename = "rover.bmp"
     elif request.GET.get("base64"):
         image_url = screen.image_as_base64
         filename = screen.image_as_url_for_device_filename
     else:
-        image_url = request.build_absolute_uri(screen.image_as_url_for_device)
+        image_url = f"http://192.168.0.63:8000{screen.image_as_url_for_device}"
         filename = screen.image_as_url_for_device_filename
 
     return JsonResponse(
@@ -228,6 +228,18 @@ def generate_screen(request):
                 "message": "Device not found",
             },
             status=404,
+        )
+
+    existing_screen = Screen.objects.filter(device=device).first()
+    if existing_screen:
+        existing_screen.generate_screen()
+
+        return JsonResponse(
+            {
+                "status": 200,
+                "message": "Screen updated",
+            },
+            status=200,
         )
 
     screen = device.screen_set.create(
