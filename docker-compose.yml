@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: .
-    container_name: app
+    container_name: byos_django-app
     volumes:
       - ./data:/data
     environment:
@@ -16,17 +16,17 @@ services:
       - pw
     command: daphne -b 0.0.0.0 -p 8000 byos_django.asgi:application
   pw:
-    image: mcr.microsoft.com/playwright:v1.50.0-noble
-    container_name: pw
+    image: mcr.microsoft.com/playwright:v1.52.0-noble
+    container_name: byos_django-pw
     user: pwuser
     init: true
     volumes:
       - pw_home:/home/pwuser
-    command: npx -y playwright@1.50.0 run-server --port 3000 --host 0.0.0.0
+    command: npx -y playwright@1.52.0 run-server --port 3000 --host 0.0.0.0
   nginx:
     build:
       context: .
-    container_name: nginx
+    container_name: byos_django-nginx
     ports:
       - "8000:80"
     links:

@@ -138,4 +138,5 @@ if not CSRF_TRUSTED_ORIGINS or CSRF_TRUSTED_ORIGINS == [""]:
     CSRF_TRUSTED_ORIGINS = []
     for host in ALLOWED_HOSTS:
         CSRF_TRUSTED_ORIGINS.append(f"http://{host}")
+        CSRF_TRUSTED_ORIGINS.append(f"https://{host}")
         CSRF_TRUSTED_ORIGINS.append(f"http://{host}:8000")

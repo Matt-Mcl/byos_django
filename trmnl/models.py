@@ -75,6 +75,7 @@ class DeviceLog(models.Model):
 class Screen(models.Model):
     device = models.ForeignKey(Device, on_delete=models.CASCADE)
     html = models.TextField()
+    url = models.TextField()
     screen = models.BinaryField()
     created_at = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     generated = models.BooleanField(default=False)
@@ -94,7 +95,13 @@ class Screen(models.Model):
             page = browser.new_page()
             page.set_viewport_size({"width": 800, "height": 480})
 
-            page.set_content(self.html)
+            if self.url is not None:
+                page.goto(self.url, timeout=60000)
+            else:
+                page.set_content(self.html)
+
+            page.wait_for_timeout(3000)
+
             page.evaluate(
                 'document.getElementsByTagName("html")[0].style.overflow = "hidden";'
                 'document.getElementsByTagName("body")[0].style.overflow = "hidden";'
