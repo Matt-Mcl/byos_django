@@ -1,5 +1,6 @@
 import base64
 import json
+import time
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
@@ -111,17 +112,19 @@ def display(request):
             status=200,
         )
 
+    unixtime = {int(time.time())}
+
     # get latest screen, or rover if no screen
     screen = device.get_screen(update_last_seen=True)
     if not screen:
-        image_url = request.build_absolute_uri("/static/images/rover.bmp")
+        image_url = "http://192.168.0.63:8000/static/images/rover.bmp"
         filename = "rover.bmp"
     elif request.GET.get("base64"):
         image_url = screen.image_as_base64
         filename = screen.image_as_url_for_device_filename
     else:
-        image_url = request.build_absolute_uri(screen.image_as_url_for_device)
-        filename = screen.image_as_url_for_device_filename
+        image_url = f"http://192.168.0.63:8000{screen.image_as_url_for_device}&time={unixtime}"
+        filename = f"{unixtime}-{screen.image_as_url_for_device_filename}"
 
     return JsonResponse(
         {
@@ -168,6 +171,18 @@ def log(request):
 
     device.devicelog_set.create(message=message)
 
+    try:
+        # Get battery voltage 
+        voltage = message.get("log", {}).get("logs_array", [{}])[0].get(
+            "device_status_stamp", {}
+        ).get("battery_voltage", None)
+
+        with open("voltage.txt", "w") as f:
+            f.write(f"{voltage}")
+
+    except Exception as e:
+        pass
+    
     return JsonResponse(
         {
             "status": 200,
@@ -230,6 +245,18 @@ def generate_screen(request):
             status=404,
         )
 
+    existing_screen = Screen.objects.filter(device=device).first()
+    if existing_screen:
+        existing_screen.generate_screen()
+
+        return JsonResponse(
+            {
+                "status": 200,
+                "message": "Screen updated",
+            },
+            status=200,
+        )
+
     screen = device.screen_set.create(
         html=data["html"],
     )
@@ -251,6 +278,32 @@ def generate_screen(request):
                 "message": f"Error creating screenshot: {e}",
             },
             status=500,
+        )
+
+@csrf_exempt
+def battery(request):
+
+    try:
+        with open("voltage.txt", "r") as f:
+            voltage = f.read()
+    except FileNotFoundError:
+        voltage = None
+
+    if voltage:
+        return JsonResponse(
+            {
+                "status": 200,
+                "voltage": voltage,
+            },
+            status=200,
+        )
+    else:
+        return JsonResponse(
+            {
+                "status": 404,
+                "message": "Voltage not found",
+            },
+            status=404,
         )
 
 
